@@ -34,8 +34,18 @@ public class ViewController {
     @PostMapping
     public ResponseEntity createView(@RequestBody View view) throws URISyntaxException {
         View savedView = viewRepository.save(view);
+
+        if (savedView.getName() == null ||
+                savedView.getCountry() == null ||
+                savedView.getIndicator() == null ||
+                savedView.getStartDate() == null ||
+                savedView.getEndDate() == null) {
+
+            viewRepository.deleteById(savedView.getId());
+            return ResponseEntity.badRequest().build();
+        }
+
         return ResponseEntity.created(new URI("/view/" + savedView.getId())).body(savedView);
-        // handle errors later
     }
 
     @GetMapping
@@ -44,15 +54,23 @@ public class ViewController {
     }
 
     @GetMapping("/{id}")
-    public View getView(@PathVariable Long id) {
-        // add error handling later
+    public View getView(@PathVariable Long id) throws URISyntaxException {
+//        if (viewRepository.existsById(id)) {
+//            View view = viewRepository.getReferenceById(id);
+//            return ResponseEntity.created(new URI("/view/" + id)).body(view);
+//        } else {
+//            return ResponseEntity.badRequest().build();
+//        }
         return viewRepository.findById(id).orElseThrow();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity deleteView(@PathVariable Long id) {
-        // add error handling later
-        viewRepository.deleteById(id);
-        return ResponseEntity.ok().build();
+        if (viewRepository.existsById(id)) {
+            viewRepository.deleteById(id);
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }
